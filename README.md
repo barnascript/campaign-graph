@@ -47,6 +47,28 @@ python3 -m pytest -q
 
 Outputs: `out/report.md`, `out/bundle.json`.
 
+## Explorer
+
+```bash
+python3 -m cgraph ui --truth truth.tags.csv    # -> out/explorer.html
+```
+
+One self-contained HTML file (~1 MB) with the data inlined. No server, no CDN,
+no network calls, so it opens offline and can be attached or hosted anywhere.
+
+- **Explore:** filter clusters by search (host, IP, pivot or label), label,
+  size, *leads* (unlabelled clusters) or *mixed labels*. Each cluster is drawn
+  as a force-directed graph, with edge width showing evidence weight. Click a
+  host for its IOCs, ASN and pivots; click an edge for the exact pivots that
+  linked two hosts, with strong pivots marked.
+- **Scores:** the graph-vs-baseline table, per-label results, merges and
+  splits, switchable between actor truth and family labels. Every merge and
+  label links back into the graph.
+- Colour follows the label, never its rank: with actor truth loaded, actors own
+  the 8 palette slots, so a merge of two actors is always visible. Family-only
+  hosts are grey; unlabelled hosts are hollow. Light and dark modes, works at
+  phone width, and `#CG-0007`-style links point at one cluster.
+
 ## Method
 
 **Nodes** are hosts (an IP or a domain). Every URL, `ip:port` and domain IOC

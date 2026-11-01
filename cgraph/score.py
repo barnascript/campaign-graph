@@ -108,6 +108,15 @@ def contamination(assign: dict[str, int], truth: dict[str, str],
     return bad, total
 
 
+def metrics(asg: dict[str, int], truth: dict[str, str], nodes: dict[str, Node]) -> dict:
+    """Every number in the scoreboard for one grouping."""
+    m, b = pairwise(asg, truth), bcubed(asg, truth)
+    bad, mates = contamination(asg, truth, nodes)
+    return {"pair_p": m["precision"], "pair_r": m["recall"], "b3_p": b["precision"],
+            "b3_r": b["recall"], "b3_f1": b["f1"], "ari": m["ari"], "coverage": m["coverage"],
+            "cont_bad": bad, "cont_total": mates}
+
+
 def per_label(assign: dict[str, int], truth: dict[str, str]) -> list[tuple]:
     """For each label: hosts, share clustered, purity of their clusters, biggest piece."""
     size = Counter(assign.values())

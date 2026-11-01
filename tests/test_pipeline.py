@@ -77,6 +77,23 @@ def test_parsers():
     assert [o.family for o in c2] == ["Cobalt Strike", "Cobalt Strike"]
 
 
+def test_explorer_payload_and_page(tmp_path):
+    from cgraph.ui import build_payload, write_explorer
+    nodes = build_nodes(fixture())
+    G = build_graph(nodes)
+    clusters = cluster(G)
+    actors = {h: "ActorA" for h in nodes if h.startswith("a")}
+    truths = {"Actors (t.csv)": actors, "Family labels": {h: n.label for h, n in nodes.items()}}
+    p = build_payload(len(fixture()), nodes, G, clusters, truths, "louvain")
+    assert p["colorBy"] == "act" and p["palette"] == ["ActorA"]
+    assert [c["id"] for c in p["clusters"]] == ["CG-0001", "CG-0002"]  # same ids as STIX
+    assert all(0 <= i < len(p["nodes"]) for c in p["clusters"] for e in c["e"] for i in e[:2])
+    out = tmp_path / "x.html"
+    write_explorer(str(out), 1, nodes, G, clusters, truths, "louvain")
+    html = out.read_text()
+    assert "/*DATA*/null" not in html and "</script>" in html
+
+
 def test_stix_bundle_shape():
     nodes = build_nodes(fixture())
     G = build_graph(nodes)

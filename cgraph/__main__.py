@@ -1,4 +1,4 @@
-"""campaign-graph: python -m cgraph fetch | truth | run"""
+"""campaign-graph: python -m cgraph fetch | truth | run | ui"""
 from __future__ import annotations
 
 import argparse
@@ -12,9 +12,8 @@ from . import sources
 from .enrich import load_asn_db
 from .features import build_nodes
 from .graph import build_graph, cluster, cluster_evidence
-from .score import (assignment, baselines, bcubed, contamination, load_truth,
-                    merges_and_splits, pairwise, per_label, truth_from_feeds, truth_from_tags,
-                    write_truth)
+from .score import (assignment, baselines, load_truth, merges_and_splits, metrics, per_label,
+                    truth_from_feeds, truth_from_tags, write_truth)
 from .stix import to_bundle, write_bundle
 
 OBS_PATH = "data/observations.json"
@@ -40,20 +39,35 @@ def cmd_fetch(a) -> None:
 
 
 def fmt(asg: dict, truth: dict, nodes: dict) -> str:
-    m, b = pairwise(asg, truth), bcubed(asg, truth)
-    bad, mates = contamination(asg, truth, nodes)
+    m = metrics(asg, truth, nodes)
+    bad, mates = m["cont_bad"], m["cont_total"]
     cont = f"{bad / mates:.2%} ({bad}/{mates})" if mates else "-"
-    return (f"| {m['precision']:.3f} | {m['recall']:.3f} | {b['precision']:.3f} "
-            f"| {b['recall']:.3f} | {b['f1']:.3f} | {m['ari']:.3f} | {m['coverage']:.1%} "
+    return (f"| {m['pair_p']:.3f} | {m['pair_r']:.3f} | {m['b3_p']:.3f} "
+            f"| {m['b3_r']:.3f} | {m['b3_f1']:.3f} | {m['ari']:.3f} | {m['coverage']:.1%} "
             f"| {cont} |")
 
 
-def cmd_run(a) -> None:
+def analyse(a):
+    """Load observations, build the graph and cluster it: shared by run and ui."""
     with open(OBS_PATH) as f:
         obs = [sources.Observation(**o) for o in json.load(f)]
     nodes = build_nodes(obs, None if a.no_asn else load_asn_db())
     G = build_graph(nodes, max_df=a.max_df, min_weight=a.min_weight)
-    clusters = cluster(G, a.method, a.resolution)
+    return obs, nodes, G, cluster(G, a.method, a.resolution)
+
+
+def cmd_ui(a) -> None:
+    from .ui import write_explorer
+    obs, nodes, G, clusters = analyse(a)
+    truths = {"Family labels": truth_from_feeds(nodes)}
+    if a.truth:
+        truths = {f"Actors ({a.truth})": load_truth(a.truth), **truths}
+    write_explorer(a.out, len(obs), nodes, G, clusters, truths, a.method)
+    print(f"wrote {a.out}")
+
+
+def cmd_run(a) -> None:
+    obs, nodes, G, clusters = analyse(a)
     multi = [c for c in clusters if len(c) >= 2]
     truth = load_truth(a.truth) if a.truth else truth_from_feeds(nodes)
     truth_name = a.truth or "feed family labels"
@@ -117,14 +131,18 @@ def main() -> None:
     f.add_argument("--sources", default="threatfox,actors,feodo,c2intel")
     f.add_argument("--days", type=int, default=7)
     f.set_defaults(fn=cmd_fetch)
-    r = sub.add_parser("run", help="cluster, score, export STIX")
-    r.add_argument("--method", choices=["louvain", "leiden", "components"], default="louvain")
-    r.add_argument("--resolution", type=float, default=1.0)
-    r.add_argument("--max-df", type=int, default=None)
-    r.add_argument("--min-weight", type=float, default=1.0)
-    r.add_argument("--truth", help="CSV with indicator,label columns (actor-level ground truth)")
-    r.add_argument("--no-asn", action="store_true", help="skip the ip2asn download")
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--method", choices=["louvain", "leiden", "components"], default="louvain")
+    common.add_argument("--resolution", type=float, default=1.0)
+    common.add_argument("--max-df", type=int, default=None)
+    common.add_argument("--min-weight", type=float, default=1.0)
+    common.add_argument("--truth", help="CSV with indicator,label columns (actor-level truth)")
+    common.add_argument("--no-asn", action="store_true", help="skip the ip2asn download")
+    r = sub.add_parser("run", parents=[common], help="cluster, score, export STIX")
     r.set_defaults(fn=cmd_run)
+    u = sub.add_parser("ui", parents=[common], help="write a self-contained HTML explorer")
+    u.add_argument("--out", default="out/explorer.html")
+    u.set_defaults(fn=cmd_ui)
     t = sub.add_parser("truth", help="build actor-level truth CSV from ThreatFox actor tags")
     t.add_argument("--out", default="truth.tags.csv")
     t.set_defaults(fn=cmd_truth)
