@@ -35,6 +35,23 @@ def test_labels_never_become_features():
     assert not any("Fam" in f for f in feats)
 
 
+def test_weak_pivots_alone_do_not_link():
+    # same ASN-ish hosting + same unusual port, different /24s: not one operator
+    obs = [Observation(host=f"10.{i}.0.1", source="t", ip=f"10.{i}.0.1", port=46367)
+           for i in range(4)]
+    # same framework default path on unrelated hosts: one tool, not one actor
+    obs += [Observation(host=f"x{i}.org{i}.net", source="t", uri_path="/Mozi.m") for i in range(4)]
+    assert build_graph(build_nodes(obs)).number_of_edges() == 0
+
+
+def test_same_net24_plus_port_links():
+    obs = [Observation(host=f"10.9.9.{i}", source="t", ip=f"10.9.9.{i}", port=46367)
+           for i in range(3)]
+    # unrelated hosts, so the shared pivot is rare (IDF > 0) as in real data
+    obs += [Observation(host=f"172.16.{i}.1", source="t", ip=f"172.16.{i}.1") for i in range(20)]
+    assert build_graph(build_nodes(obs)).number_of_edges() == 3
+
+
 def test_pairwise_perfect_and_singletons():
     truth = {"a": "x", "b": "x", "c": "y"}
     assert pairwise({"a": 0, "b": 0, "c": 1}, truth)["precision"] == 1.0

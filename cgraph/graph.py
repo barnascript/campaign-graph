@@ -15,7 +15,8 @@ import networkx as nx
 from .features import Node
 
 # Broad pivots count for less even when they are rare in this dataset.
-KIND_WEIGHT = {"ip": 1.0, "regdom": 1.0, "path": 1.0, "net24": 0.6, "port": 0.4, "asn": 0.25}
+KIND_WEIGHT = {"ip": 1.0, "regdom": 1.0, "path": 1.0, "net24": 0.6, "kitpath": 0.4,
+               "port": 0.4, "asn": 0.25}
 
 
 def feature_index(nodes: dict[str, Node]) -> dict[str, list[str]]:
@@ -52,12 +53,13 @@ STRONG = {"ip", "regdom", "path"}
 
 
 def corroborated(shared: list[str]) -> bool:
-    """Analyst rule: one strong pivot, or two independent weak ones.
+    """Analyst rule: one strong pivot, or the same /24 plus one more weak pivot.
 
-    Sharing a small hosting ASN, or a port, is never enough on its own.
+    The ASN only adds weight and never corroborates: DigitalOcean + port 8080
+    merged Cobalt Strike, AdaptixC2 and Emotet hosts on the first full run.
     """
-    kinds = [f.split(":", 1)[0] for f in shared]
-    return any(k in STRONG for k in kinds) or len(set(kinds)) >= 2
+    kinds = {f.split(":", 1)[0] for f in shared}
+    return bool(kinds & STRONG) or ("net24" in kinds and bool(kinds & {"port", "kitpath"}))
 
 
 def cluster(G: nx.Graph, method: str = "louvain", resolution: float = 1.0,

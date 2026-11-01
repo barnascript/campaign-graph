@@ -11,10 +11,25 @@ from dataclasses import dataclass, field
 
 from .sources import Observation, is_ip
 
-# Ports nearly every web C2 uses; on their own they say nothing.
-COMMON_PORTS = {80, 443}
+# Standard service ports; sharing one says nothing about the operator.
+COMMON_PORTS = {21, 22, 53, 80, 443, 8000, 8080, 8443, 8888}
 # URI paths too generic to link two operators.
 GENERIC_PATHS = {"/", "/index.html", "/index.php", "/favicon.ico"}
+# Defaults shipped with public C2 frameworks and botnet loaders. Every operator
+# who did not change the profile shares them, so they point at the tool, not
+# the actor: kept as weak evidence only.
+TOOL_DEFAULT_PATHS = {
+    # Cobalt Strike default and sample malleable profiles
+    "/jquery-3.3.1.min.js", "/jquery-3.3.1.slim.min.js", "/jquery-3.3.2.min.js",
+    "/g.pixel", "/j.ad", "/cm", "/cx", "/ca", "/en_US/all.js", "/ga.js", "/updates.rss",
+    "/match", "/dpixel", "/pixel", "/pixel.gif", "/__utm.gif", "/dot.gif", "/fwlink",
+    "/visit.js", "/load", "/push", "/ptj", "/activity", "/IE9CompatViewList.xml",
+    "/submit.php", "/books/", "/static/",
+    # botnet loader names
+    "/Mozi.m", "/Mozi.a", "/bins.sh", "/arm", "/arm5", "/arm6", "/arm7", "/armv7l",
+    "/mips", "/mpsl", "/x86", "/x86_64", "/i686", "/sh4", "/ppc", "/m68k",
+}
+TOOL_DEFAULT_LOWER = {p.lower() for p in TOOL_DEFAULT_PATHS}
 # Shared platforms: two subdomains under these are not the same operator.
 SHARED_SUFFIXES = (
     "duckdns.org", "ddns.net", "no-ip.org", "hopto.org", "ngrok.io", "ngrok-free.app",
@@ -22,9 +37,15 @@ SHARED_SUFFIXES = (
     "cloudfront.net", "amazonaws.com", "herokuapp.com", "tencentscf.com",
     "myqcloud.com", "aliyuncs.com", "github.io", "vercel.app", "netlify.app",
     "000webhostapp.com", "glitch.me", "r2.dev", "firebaseapp.com", "web.app",
-    "baidubce.com", "bcebos.com",
+    "baidubce.com", "bcebos.com", "googleusercontent.com", "google.com", "appspot.com",
+    "blogspot.com", "azure.com", "azureedge.net", "windows.net", "sharepoint.com",
 )
 SECOND_LEVEL = {"co", "com", "net", "org", "gov", "ac", "edu", "ne", "or"}
+
+
+def known(family: str | None) -> bool:
+    """ThreatFox's 'Unknown malware' / 'Unknown Loader' are not families."""
+    return bool(family) and not family.lower().startswith("unknown")
 
 
 def registered_domain(host: str) -> str | None:
@@ -45,12 +66,12 @@ class Node:
 
     @property
     def label(self) -> str | None:
-        fams = Counter(o.family for o in self.observations if o.family)
+        fams = Counter(o.family for o in self.observations if known(o.family))
         return fams.most_common(1)[0][0] if fams else None
 
     @property
     def labels(self) -> set[str]:
-        return {o.family for o in self.observations if o.family}
+        return {o.family for o in self.observations if known(o.family)}
 
     @property
     def ips(self) -> set[str]:
@@ -88,5 +109,7 @@ def extract_features(node: Node, asn_db=None) -> set[str]:
         if o.port and o.port not in COMMON_PORTS:
             f.add(f"port:{o.port}")
         if o.uri_path and o.uri_path not in GENERIC_PATHS:
-            f.add(f"path:{o.uri_path}")
+            # short paths like /b/ and framework defaults identify a kit, not an operator
+            weak = o.uri_path.lower() in TOOL_DEFAULT_LOWER or len(o.uri_path.strip("/")) <= 2
+            f.add(f"{'kitpath' if weak else 'path'}:{o.uri_path}")
     return f
