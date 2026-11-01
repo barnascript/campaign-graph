@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SITE = ROOT / "site"
-ARTIFACT = "https://claude.ai/artifact/DSYSNZVtP5zUZxhGwrS4zo"
+SITE_URL = "https://campaign-graph.onrender.com/"
 # the query API's own example URLs are the only query strings allowed on the site
 API_HOST = "barnabas-team.us.ainiro.io/magic/modules/campaign-graph/"
 
@@ -32,10 +32,10 @@ def main() -> None:
     run(sys.executable, "investigations/render.py", "docs/API.md", "site/api.html",
         "--home=index.html", "--untagged")
 
-    # The report README links the claude.ai copies; on this site they point home.
+    # On the site itself, links back to the site become relative; the page needs no self-link.
     md = (ROOT / "investigations/CG-0001/README.md").read_text()
     md = re.sub(r"^Rendered page: .*\n\n", "", md, flags=re.M)
-    md = md.replace(ARTIFACT, "../index.html")
+    md = md.replace(SITE_URL, "../index.html")
     tmp = SITE / "reports" / "cg0001.md"
     tmp.write_text(md)
     run(sys.executable, "investigations/render.py", str(tmp), "site/reports/cg0001.html",

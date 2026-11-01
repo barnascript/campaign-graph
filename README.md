@@ -177,6 +177,15 @@ each actor clustered): victims, not actor infrastructure. They would cluster on
 injected script content, which the feeds do not carry. ClearFake clusters well
 (74%) because its hosts reuse attacker-registered domains.
 
+**6. The clustering setting barely matters; the evidence rules do.** A sweep
+from plain connected components to Louvain at 8× resolution gives the same
+actor-level result every time (B³ precision 0.999, contamination 0.18%; 856–858
+clusters). The corroboration rule and the platform filters already make each
+connected group tight, so the precision/recall tradeoff lives in which pivots
+count as evidence, not in the community-detection algorithm. Loosening those
+rules (for example letting `vercel.app` link hosts) is what buys the
+registered-domain baseline its extra recall, at 11× the contamination.
+
 **Leads** for manual work: Vidar infrastructure spread across Indonesian
 gambling-spam domains (`*toto`, `*togel`, 8 subdomains each).
 
@@ -253,6 +262,6 @@ IDs are UUIDv5 over stable inputs, so reruns produce the same IDs.
 - [ ] `nameshape:` weak pivot (e.g. the vowel–consonant generator in CG-0001)
 - [ ] Time pivot: first seen within N days, as a weak feature
 - [ ] `platform:` weak pivot (Vercel, dynv6) that needs corroboration
-- [ ] Resolution sweep: precision/recall curve, not one point
+- [x] Resolution sweep (result: flat; the evidence rules set the tradeoff)
 - [ ] Run VirusTotal enrichment on the actor-labelled hosts and report the score change
 - [ ] More passive pivots: TLS certificate hash, JARM/JA4S, favicon hash

@@ -8,7 +8,7 @@
 | **Collection** | Passive only: ThreatFox, RDAP registration records, certificate transparency, public reporting. No domain was resolved, visited or scanned |
 | **Analyst** | Barnabas · 1 November 2026 |
 
-Rendered page: [CG-0001 Investigation](https://claude.ai/artifact/3G67fiPpgD1ZewgvUbH2KL)
+Rendered page: [CG-0001 Investigation](https://campaign-graph.onrender.com/reports/cg0001.html)
 
 ## Key findings
 
@@ -39,7 +39,7 @@ shared custom URI paths, `/L12qt0W` (35 hosts) and `/opt/out` (10 hosts), which 
 strong pivots. No family label came from the feeds, so it surfaced in the explorer's
 **Leads** view.
 
-[Open CG-0001 in the explorer](https://claude.ai/artifact/DSYSNZVtP5zUZxhGwrS4zo#CG-0001).
+[Open CG-0001 in the explorer](https://campaign-graph.onrender.com/#CG-0001).
 
 It is a fair test of the tool. Without labels, the cluster still matched a real
 operation, and the investigation below confirmed the grouping with evidence the graph

@@ -8,7 +8,7 @@ services:
     headers:
       - path: /*
         name: Content-Security-Policy
-        value: "default-src 'none'; script-src 'sha256-4fbzGUT+yQdf3CpCfKmsalkP2xaOTWWuT2cm71A0bL0='; style-src 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        value: "default-src 'none'; script-src 'sha256-wPP+1XO3Su8OK0tExH+i3RFD6h3cKM8sgp1E9FEXJjc='; style-src 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
       - path: /*
         name: X-Content-Type-Options
         value: "nosniff"
