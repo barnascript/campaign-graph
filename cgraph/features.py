@@ -33,6 +33,8 @@ TOOL_DEFAULT_LOWER = {p.lower() for p in TOOL_DEFAULT_PATHS}
 # Shared platforms: two subdomains under these are not the same operator.
 SHARED_SUFFIXES = (
     "duckdns.org", "ddns.net", "no-ip.org", "hopto.org", "ngrok.io", "ngrok-free.app",
+    "dynv6.net", "dynu.net", "freemyip.com", "mooo.com", "afraid.org", "linkpc.net",
+    "kozow.com", "serveo.net", "zapto.org", "sytes.net", "myftp.biz", "servehttp.com",
     "trycloudflare.com", "workers.dev", "pages.dev", "azurewebsites.net",
     "cloudfront.net", "amazonaws.com", "herokuapp.com", "tencentscf.com",
     "myqcloud.com", "aliyuncs.com", "github.io", "vercel.app", "netlify.app",

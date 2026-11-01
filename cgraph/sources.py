@@ -86,6 +86,36 @@ def fetch_threatfox(days: int = 7, key: str | None = None) -> list[Observation]:
     return parse_threatfox(resp["data"])
 
 
+# ThreatFox tag -> actor / activity cluster. Tags are reporter claims, the best
+# public actor-level labels available; aliases of one group share a name.
+ACTOR_TAGS = {
+    "ContagiousInterview": "Famous Chollima (DPRK)",
+    "FamousChollima": "Famous Chollima (DPRK)",
+    "Kimsuky": "Kimsuky (DPRK)",
+    "Lazarus": "Lazarus (DPRK)",
+    "SmartApeSG": "SmartApeSG",
+    "SocGholish": "TA569 / SocGholish",
+    "KongTuke": "KongTuke",
+    "ClearFake": "ClearFake",
+    "MuddyWater": "MuddyWater (Iran)",
+    "ShinyHunters": "ShinyHunters",
+}
+
+
+def fetch_threatfox_tags(tags=tuple(ACTOR_TAGS), key: str | None = None) -> list[Observation]:
+    """All-time IOCs for actor tags (ThreatFox caps each tag at 1000)."""
+    key = key or os.environ.get("ABUSECH_AUTH_KEY")
+    if not key:
+        raise RuntimeError("ThreatFox needs ABUSECH_AUTH_KEY")
+    out = []
+    for tag in tags:
+        body = json.dumps({"query": "taginfo", "tag": tag, "limit": 1000}).encode()
+        resp = json.loads(_get(THREATFOX_API, body, {"Auth-Key": key}))
+        if isinstance(resp.get("data"), list):
+            out += parse_threatfox(resp["data"])
+    return out
+
+
 def parse_feodo(rows: list[dict]) -> list[Observation]:
     return [Observation(host=r["ip_address"], source="feodo", family=r.get("malware"),
                         ip=r["ip_address"], port=r.get("port"),
