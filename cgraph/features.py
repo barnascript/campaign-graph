@@ -96,7 +96,7 @@ def build_nodes(observations: list[Observation], asn_db=None) -> dict[str, Node]
 
 def extract_features(node: Node, asn_db=None) -> set[str]:
     f: set[str] = set()
-    for ip in node.ips:
+    for ip in sorted(node.ips):  # sorted: a multi-IP host keeps one stable ASN
         f.add(f"ip:{ip}")
         if "." in ip:
             f.add("net24:" + ".".join(ip.split(".")[:3]))

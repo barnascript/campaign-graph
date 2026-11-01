@@ -11,12 +11,16 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-HEADERS = re.findall(r'name: (\S+)\n\s+value: "(.*)"', (ROOT / "render.yaml").read_text())
+
+
+def headers() -> list[tuple[str, str]]:
+    # read per request: a rebuild changes the script hash in render.yaml
+    return re.findall(r'name: (\S+)\n\s+value: "(.*)"', (ROOT / "render.yaml").read_text())
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
-        for name, value in HEADERS:
+        for name, value in headers():
             self.send_header(name, value)
         super().end_headers()
 
@@ -24,5 +28,5 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8791
     handler = functools.partial(Handler, directory=str(ROOT / "site"))
-    print(f"serving site/ with {len(HEADERS)} Render headers on http://127.0.0.1:{port}")
+    print(f"serving site/ with {len(headers())} Render headers on http://127.0.0.1:{port}")
     http.server.ThreadingHTTPServer(("127.0.0.1", port), handler).serve_forever()

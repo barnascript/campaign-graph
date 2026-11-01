@@ -25,7 +25,7 @@ MuddyWater, ShinyHunters), inside 10,522 hosts overall:
 |---|---|---|---|
 | **graph** | **0.999** | 0.017 | **0.18%** (4/2,232) |
 | same registered domain | 0.999 | 0.058 | 2.08% (110/5,287) |
-| same ASN | 0.997 | 0.017 | 30.80% (349/1,133) |
+| same ASN | 0.997 | 0.017 | 30.86% (350/1,134) |
 | same /24 | 0.999 | 0.013 | 16.67% (4/24) |
 
 The graph is the cleanest method by an order of magnitude. It is also
@@ -61,6 +61,10 @@ write if any page holds a live URL query string or tracker field value.
 Content-Security-Policy: the one inline script is pinned by SHA-256 hash and
 `connect-src 'none'` stops the page making any request, plus `nosniff`,
 `no-referrer` and HSTS.
+
+The Geist and Geist Mono fonts are self-hosted from `site/fonts/` (SIL Open Font
+License, copy alongside), so the CSP allows `font-src 'self'` and nothing else:
+the pages make no third-party requests.
 
 ## Explorer
 

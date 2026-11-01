@@ -5,53 +5,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CG-0001 Investigation</title>
 <style>
+/* Report: a long-form threat brief in the campaign-graph dark look. */
+@font-face { font-family: "Geist"; src: url("/fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("/fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
-  color-scheme: light;
-  --bg: #f6f6f3; --paper: #fdfdfb; --text: #151513; --text-2: #4f4e49; --muted: #7d7c75;
-  --rule: #dddcd5; --code-bg: #efeee9; --accent: #1f5fae; --high: #0d7a3e; --mod: #a15c00; --low: #a83232;
-  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #121211; --paper: #1a1a18; --text: #eeede8; --text-2: #c2c1b8; --muted: #8e8d85;
-    --rule: #34342f; --code-bg: #24241f; --accent: #6aa6ef; --high: #4cc27c; --mod: #e0a04a; --low: #ec7b7b;
-  }
-}
-:root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #121211; --paper: #1a1a18; --text: #eeede8; --text-2: #c2c1b8; --muted: #8e8d85;
-  --rule: #34342f; --code-bg: #24241f; --accent: #6aa6ef; --high: #4cc27c; --mod: #e0a04a; --low: #ec7b7b;
+  --bg: #02090c; --paper: rgba(5, 16, 21, 0.78); --text: #f3f5f4; --text-2: rgba(243, 245, 244, 0.72); --muted: rgba(243, 245, 244, 0.48);
+  --rule: rgba(243, 245, 244, 0.12); --code-bg: rgba(243, 245, 244, 0.07); --accent: #55d8d4;
+  --high: #4bfaa9; --mod: #f2b84b; --low: #f26c53;
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); }
-article { max-width: 860px; margin: 0 auto; background: var(--paper); min-height: 100vh;
-  padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-@media (min-width: 720px) { article { padding-left: 56px; padding-right: 56px; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); } }
-h1 { font-size: 1.85rem; line-height: 1.2; letter-spacing: -0.015em; margin: 0 0 20px; text-wrap: balance; }
-h2 { font-size: 1.2rem; margin: 40px 0 10px; padding-top: 16px; border-top: 1px solid var(--rule); text-wrap: balance; }
-p, li { max-width: 72ch; }
-li { margin: 4px 0; }
-a { color: var(--accent); text-underline-offset: 2px; }
-strong { font-weight: 650; }
+html { background: var(--bg); }
+body { margin: 0; color: var(--text); font: 16px/1.65 var(--sans); background:
+  radial-gradient(1100px 520px at 85% -10%, rgba(85, 216, 212, 0.14), transparent 70%),
+  radial-gradient(900px 480px at 0% 0%, rgba(46, 102, 158, 0.18), transparent 70%), var(--bg); background-repeat: no-repeat; }
+article { max-width: 900px; margin: 0 auto; padding-block: 36px 80px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.topline { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 34px; }
+.home, .tlp { font: 400 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--text-2); }
+.home { color: var(--accent); text-decoration: none; }
+.home:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tlp { border: 1px solid var(--rule); padding: 4px 10px; }
+h1 { font-weight: 400; font-size: clamp(38px, 6.4vw, 76px); line-height: 0.98; letter-spacing: -0.055em; margin: 0 0 28px; text-wrap: balance; }
+h2 { font: 400 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 52px 0 14px; padding-top: 16px; border-top: 1px solid var(--rule); }
+p, li { max-width: 72ch; color: var(--text-2); }
+p strong, li strong, td strong { color: var(--text); font-weight: 500; }
+li { margin: 6px 0; }
+ol > li::marker { font-family: var(--mono); color: var(--accent); }
+a { color: var(--accent); text-decoration-color: rgba(85, 216, 212, 0.45); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--accent); }
 em { color: var(--text-2); }
-code { font: 0.86em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
-pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
-pre code { background: none; padding: 0; font-size: 0.82rem; overflow-wrap: normal; }
-.table-wrap { overflow-x: auto; margin: 12px 0 18px; }
-table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
-th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
-th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
-td:first-child { white-space: nowrap; }
-.conf { font-weight: 650; }
+code { font: 0.84em var(--mono); background: var(--code-bg); color: var(--text); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+pre { background: var(--paper); border: 1px solid var(--rule); padding: 16px 18px; border-radius: 12px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: 0.8rem; color: var(--text-2); overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 14px 0 20px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; vertical-align: top; padding: 9px 14px; border-bottom: 1px solid var(--rule); color: var(--text-2); }
+tr:last-child td { border-bottom: 0; }
+th { font: 400 10.5px/1.4 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+td:first-child { white-space: nowrap; color: var(--text); }
+.conf { font-weight: 500; font-style: normal; }
 .conf.high { color: var(--high); } .conf.moderate { color: var(--mod); } .conf.low { color: var(--low); }
-.tlp { display: inline-block; font: 600 0.75rem var(--mono); letter-spacing: .06em; border: 1px solid var(--rule); color: var(--text-2); padding: 2px 8px; border-radius: 4px; margin-bottom: 14px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<article><span class="tlp">TLP:CLEAR · defanged · victim data removed</span>
+<article><div class="topline"><a class="home" href="../index.html">&larr; campaign-graph explorer</a><span class="tlp">TLP:CLEAR · defanged · victim data removed</span></div>
 <h1>CG-0001: UK SMS-phishing redirect chain on generated domains</h1>
 <div class="table-wrap"><table>
 <thead>

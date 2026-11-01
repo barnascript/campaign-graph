@@ -33,7 +33,8 @@ def main() -> None:
     md = md.replace(ARTIFACT, "../index.html")
     tmp = SITE / "reports" / "cg0001.md"
     tmp.write_text(md)
-    run(sys.executable, "investigations/render.py", str(tmp), "site/reports/cg0001.html")
+    run(sys.executable, "investigations/render.py", str(tmp), "site/reports/cg0001.html",
+        "--home=../index.html")
     tmp.unlink()
 
     # Refuse to publish anything that looks like victim data or a live query string.
@@ -67,7 +68,7 @@ def write_render_yaml() -> None:
             digest = hashlib.sha256(body.encode()).digest()
             hashes.add("'sha256-" + base64.b64encode(digest).decode() + "'")
     csp = ("default-src 'none'; script-src " + " ".join(sorted(hashes) or ["'none'"]) +
-           "; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; "
+           "; style-src 'unsafe-inline'; font-src 'self'; img-src data:; connect-src 'none'; base-uri 'none'; "
            "form-action 'none'; frame-ancestors 'none'")
     headers = {
         "Content-Security-Policy": csp,
