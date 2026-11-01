@@ -1,0 +1,4 @@
+indicator,label
+# One row per C2 host taken from a published report's IOC appendix.
+# label = the actor the report attributes it to (e.g. an APT or UNC name).
+# Copy to truth.csv, fill it in, then: python3 -m cgraph run --truth truth.csv
