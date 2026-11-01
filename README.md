@@ -47,6 +47,21 @@ python3 -m pytest -q
 
 Outputs: `out/report.md`, `out/bundle.json`.
 
+## Hosting (Render)
+
+```bash
+python3 build_site.py     # explorer -> site/index.html, CG-0001 -> site/reports/, writes render.yaml
+python3 serve_site.py     # preview on :8791 with the exact headers Render will send
+```
+
+`site/` is built locally and committed, because the feed cache it comes from
+stays out of git (raw feed URLs can carry victim data). The build refuses to
+write if any page holds a live URL query string or tracker field value.
+`render.yaml` deploys `site/` as a Render static site with a strict
+Content-Security-Policy: the one inline script is pinned by SHA-256 hash and
+`connect-src 'none'` stops the page making any request, plus `nosniff`,
+`no-referrer` and HSTS.
+
 ## Explorer
 
 ```bash

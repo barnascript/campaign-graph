@@ -127,6 +127,7 @@ a.jump { color: var(--accent); cursor: pointer; text-decoration: underline; text
   <h1>Campaign Graph Explorer</h1>
   <div class="stats" id="stats"></div>
   <div class="spacer"></div>
+  <nav class="stats" id="links"></nav>
   <label class="stats">Ground truth <select id="truth"></select></label>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-view="explore" aria-selected="true">Explore</button>
@@ -185,6 +186,7 @@ $("stats").innerHTML = [
   ["clusters", m.clusters], ["clustered hosts", m.clustered],
 ].map(([k, v]) => `<span><b>${v.toLocaleString()}</b> ${k}</span>`).join("") +
   `<span>${esc(m.method)} · ${esc(m.generated)}</span>`;
+$("links").innerHTML = (DATA.links || []).map((l) => `<a class="jump" href="${esc(l.url)}">${esc(l.label)}</a>`).join("");
 $("truth").innerHTML = DATA.truths.map((t, i) => `<option value="${i}">${esc(t.name)}</option>`).join("");
 const labels = [...new Set(DATA.nodes.map(labelOf).filter(Boolean))].sort();
 $("label").innerHTML += labels.map((l) => `<option>${esc(l)}</option>`).join("");

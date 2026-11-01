@@ -62,7 +62,8 @@ def cmd_ui(a) -> None:
     truths = {"Family labels": truth_from_feeds(nodes)}
     if a.truth:
         truths = {f"Actors ({a.truth})": load_truth(a.truth), **truths}
-    write_explorer(a.out, len(obs), nodes, G, clusters, truths, a.method)
+    links = [tuple(x.split("=", 1)) for x in a.link]
+    write_explorer(a.out, len(obs), nodes, G, clusters, truths, a.method, links)
     print(f"wrote {a.out}")
 
 
@@ -142,6 +143,8 @@ def main() -> None:
     r.set_defaults(fn=cmd_run)
     u = sub.add_parser("ui", parents=[common], help="write a self-contained HTML explorer")
     u.add_argument("--out", default="out/explorer.html")
+    u.add_argument("--link", action="append", default=[], metavar="LABEL=URL",
+                   help="header link, e.g. --link 'CG-0001 report=reports/cg0001.html'")
     u.set_defaults(fn=cmd_ui)
     t = sub.add_parser("truth", help="build actor-level truth CSV from ThreatFox actor tags")
     t.add_argument("--out", default="truth.tags.csv")

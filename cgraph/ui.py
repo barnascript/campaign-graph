@@ -103,9 +103,11 @@ def build_payload(obs_count: int, nodes: dict[str, Node], G: nx.Graph,
     }
 
 
-def write_explorer(path: str, obs_count, nodes, G, clusters, truths, method) -> None:
-    data = json.dumps(build_payload(obs_count, nodes, G, clusters, truths, method),
-                      separators=(",", ":"))
+def write_explorer(path: str, obs_count, nodes, G, clusters, truths, method,
+                   links: list[tuple[str, str]] = ()) -> None:
+    payload = build_payload(obs_count, nodes, G, clusters, truths, method)
+    payload["links"] = [{"label": label, "url": url} for label, url in links]
+    data = json.dumps(payload, separators=(",", ":"))
     html = TEMPLATE.replace("/*DATA*/null", data.replace("</", "<\\/"))
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with open(path, "w") as f:
