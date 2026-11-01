@@ -18,6 +18,12 @@ from .score import assignment, baselines, merges_and_splits, metrics, per_label
 MAX_IOCS = 8
 
 
+def _no_query(ioc: str) -> str:
+    """Feed URLs can carry a victim's name, address or phone in the query string
+    (seen in a UK smishing chain), so the page shows scheme, host and path only."""
+    return ioc.split("?", 1)[0].split("#", 1)[0]
+
+
 def _node(n: Node, actor: str | None) -> dict:
     feats = sorted(n.features)
     return {
@@ -28,7 +34,7 @@ def _node(n: Node, actor: str | None) -> dict:
         "paths": sorted({o.uri_path for o in n.observations if o.uri_path}),
         "src": sorted({o.source for o in n.observations}),
         "seen": n.first_seen,
-        "iocs": sorted({o.raw_ioc for o in n.observations if o.raw_ioc})[:MAX_IOCS],
+        "iocs": sorted({_no_query(o.raw_ioc) for o in n.observations if o.raw_ioc})[:MAX_IOCS],
         "feats": feats,
     }
 

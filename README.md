@@ -158,9 +158,16 @@ each actor clustered): victims, not actor infrastructure. They would cluster on
 injected script content, which the feeds do not carry. ClearFake clusters well
 (74%) because its hosts reuse attacker-registered domains.
 
-**Leads** for manual work: a 36-host cluster with **no family label**
-pivoting on `/L12qt0W` and `/opt/out`, and Vidar infrastructure spread across
-Indonesian gambling-spam domains (`*toto`, `*togel`, 8 subdomains each).
+**Leads** for manual work: Vidar infrastructure spread across Indonesian
+gambling-spam domains (`*toto`, `*togel`, 8 subdomains each).
+
+## Investigations
+
+- [**CG-0001: UK SMS-phishing redirect chain on generated domains**](investigations/CG-0001/README.md):
+  the largest unlabelled cluster. Feeds called it "Unknown malware"; it is a smishing
+  chain through an affiliate-style tracker, built in three registration waves on three
+  registrars and tied together by one domain-name generator. Passive collection only;
+  victim data redacted. Render with `python3 investigations/render.py investigations/CG-0001/README.md`.
 
 ## OPSEC
 
@@ -181,7 +188,8 @@ IDs are UUIDv5 over stable inputs, so reruns produce the same IDs.
 
 - [x] ThreatFox multi-family run
 - [x] Actor-level truth set from ThreatFox tags
-- [ ] Write-up on the `/L12qt0W` unlabelled cluster
+- [x] Write-up on the `/L12qt0W` unlabelled cluster (CG-0001)
+- [ ] `nameshape:` weak pivot (e.g. the vowel–consonant generator in CG-0001)
 - [ ] Time pivot: first seen within N days, as a weak feature
 - [ ] `platform:` weak pivot (Vercel, dynv6) that needs corroboration
 - [ ] Resolution sweep: precision/recall curve, not one point

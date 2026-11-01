@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CG-0001 Investigation</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f6f3; --paper: #fdfdfb; --text: #151513; --text-2: #4f4e49; --muted: #7d7c75;
+  --rule: #dddcd5; --code-bg: #efeee9; --accent: #1f5fae; --high: #0d7a3e; --mod: #a15c00; --low: #a83232;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211; --paper: #1a1a18; --text: #eeede8; --text-2: #c2c1b8; --muted: #8e8d85;
+    --rule: #34342f; --code-bg: #24241f; --accent: #6aa6ef; --high: #4cc27c; --mod: #e0a04a; --low: #ec7b7b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --paper: #1a1a18; --text: #eeede8; --text-2: #c2c1b8; --muted: #8e8d85;
+  --rule: #34342f; --code-bg: #24241f; --accent: #6aa6ef; --high: #4cc27c; --mod: #e0a04a; --low: #ec7b7b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); }
+article { max-width: 860px; margin: 0 auto; background: var(--paper); min-height: 100vh;
+  padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 720px) { article { padding-left: 56px; padding-right: 56px; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); } }
+h1 { font-size: 1.85rem; line-height: 1.2; letter-spacing: -0.015em; margin: 0 0 20px; text-wrap: balance; }
+h2 { font-size: 1.2rem; margin: 40px 0 10px; padding-top: 16px; border-top: 1px solid var(--rule); text-wrap: balance; }
+p, li { max-width: 72ch; }
+li { margin: 4px 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+strong { font-weight: 650; }
+em { color: var(--text-2); }
+code { font: 0.86em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto; line-height: 1.5; }
+pre code { background: none; padding: 0; font-size: 0.82rem; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 12px 0 18px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
+th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+td:first-child { white-space: nowrap; }
+.conf { font-weight: 650; }
+.conf.high { color: var(--high); } .conf.moderate { color: var(--mod); } .conf.low { color: var(--low); }
+.tlp { display: inline-block; font: 600 0.75rem var(--mono); letter-spacing: .06em; border: 1px solid var(--rule); color: var(--text-2); padding: 2px 8px; border-radius: 4px; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+<article><span class="tlp">TLP:CLEAR · defanged · victim data removed</span>
+<h1>CG-0001: UK SMS-phishing redirect chain on generated domains</h1>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cluster</strong></td>
+<td>CG-0001 in campaign-graph (36 hosts, density 0.959)</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>Unattributed. Active 21 Sep – 29 Oct 2026; landing pages suspended by 1 Nov 2026</td>
+</tr>
+<tr>
+<td><strong>Assessed activity</strong></td>
+<td>SMS phishing (smishing) aimed at UK mobile users, through an affiliate-style click tracker</td>
+</tr>
+<tr>
+<td><strong>Collection</strong></td>
+<td>Passive only: ThreatFox, RDAP registration records, certificate transparency, public reporting. No domain was resolved, visited or scanned</td>
+</tr>
+<tr>
+<td><strong>Analyst</strong></td>
+<td>Barnabas · 1 November 2026</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rendered page: <a href="https://claude.ai/artifact/3G67fiPpgD1ZewgvUbH2KL">CG-0001 Investigation</a></p>
+<h2>Key findings</h2>
+<ol>
+<li><strong>The cluster is a smishing redirect chain, not malware.</strong> ThreatFox labels all 46
+   records "Unknown malware / payload_delivery". The URLs show something else: a short
+   generated domain, then a click tracker carrying an SMS cost macro (<code>%sms_cost%</code>) and a
+   UK mobile number, then a landing page under <code>/pa/UK/</code>. <em class="conf high">High confidence.</em></li>
+<li><strong>One operator built it in three registration waves</strong> (21–28 Sep, 13–18 Oct, 21–24
+   Oct), switching registrar and DNS setup each time. What links the waves is the naming:
+   all 38 generated domains are 7–8 letters, alternating vowel and consonant (<code>ihelaha</code>,
+   <code>egulene</code>, <code>oramosi</code>). The URL conventions and reporting times are shared too.
+   <em class="conf moderate">Moderate confidence.</em></li>
+<li><strong>The operator already held the victims' personal data before sending.</strong> One tracker
+   URL carries a UK resident's first name, surname, home address, email and mobile number
+   as pre-filled parameters. That points to a bought or breached lead list, not data
+   typed into a phishing form. <em class="conf moderate">Moderate confidence</em>, based on one complete example.</li>
+<li><strong>Domains were aged before use.</strong> The median gap from registration to first report
+   is 10 days (range 3–37). The oldest wave served only <code>/opt/out</code> pages. <em>High
+   confidence for the timing; low confidence for why.</em></li>
+<li><strong>Partly disrupted already.</strong> Both <code>.top</code> landing domains are on registry
+   <code>serverHold</code>. The 36 short domains and the tracker were still registered and
+   unsuspended on 1 Nov 2026.</li>
+</ol>
+<h2>How campaign-graph found it</h2>
+<p>CG-0001 was the largest cluster with no family label. The graph joined its hosts on
+shared custom URI paths, <code>/L12qt0W</code> (35 hosts) and <code>/opt/out</code> (10 hosts), which count as
+strong pivots. No family label came from the feeds, so it surfaced in the explorer's
+<strong>Leads</strong> view.</p>
+<p><a href="https://claude.ai/artifact/DSYSNZVtP5zUZxhGwrS4zo#CG-0001">Open CG-0001 in the explorer</a>.</p>
+<p>It is a fair test of the tool. Without labels, the cluster still matched a real
+operation, and the investigation below confirmed the grouping with evidence the graph
+never saw: registration records and naming.</p>
+<h2>The chain</h2>
+<pre><code>SMS to a UK mobile
+  └─ https://&lt;generated&gt;.com/L12qt0W           short link; the path is the click_id
+       └─ https://now.trckthepage[.]com/&lt;uuid&gt;?click_id=L12qt0W&amp;var2=…&amp;var9=44…&amp;cost=%sms_cost%
+            └─ https://&lt;generated&gt;.top/pa/UK/&lt;n&gt;/?srv=eu&amp;domain=now.trckthepage[.]com&amp;cep=…&amp;lptoken=…
+                                               landing page (not visited)
+</code></pre>
+<ul>
+<li><strong>The short-link path is the tracker's <code>click_id</code>.</strong> <code>L12qt0W</code> appears on 35 domains,
+  so it is a batch or campaign token, not a per-recipient one. A second token,
+  <code>Fnc12IU</code>, appears once.</li>
+<li><strong>The tracker's parameters</strong> are the generic slots ad trackers use (<code>var2</code>…<code>var11</code>,
+  <code>lptoken</code>, <code>cep</code>). In the observed URLs, those slots carry the recipient's mobile
+  number (<code>var9</code>, UK <code>44 7…</code> format) and, in one case, name, address and email.</li>
+<li><strong><code>%sms_cost%</code></strong> is an unfilled cost macro, left in the URL by whatever system sent
+  the SMS. It shows the traffic was bought or sent as SMS and tracked like paid ads.</li>
+<li><strong><code>/opt/out</code></strong> appears only on wave A domains. Fake opt-out links are common in
+  smishing; one plausible use is confirming that a number is live when someone replies
+  or clicks. This is unconfirmed, as no page content was collected.</li>
+</ul>
+<p>Public reporting on UK smishing (<a href="https://hunt.io/blog/massive-smishing-campaign-governments-postal-telecoms">Hunt.io: DPD-themed operation</a>;
+<a href="https://www.resecurity.com/blog/article/smishing-triad-is-now-targeting-toll-payment-services-in-a-massive-fraud-campaign-expansion">Resecurity</a> and <a href="https://www.infosecurity-magazine.com/news/smishing-triad-toll-payment-scams/">Infosecurity Magazine</a> on Smishing Triad) does not
+mention this tracker domain or these URL parameters. The tracker-macro design and the
+pre-filled victim data differ from the per-brand phishing kits in that reporting. No
+attribution is made.</p>
+<h2>Timeline (UTC)</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Event</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>27 Jul 2026</td>
+<td><code>iconado[.]com</code> has a GoDaddy certificate: an earlier registration, so likely a dropped domain re-registered</td>
+</tr>
+<tr>
+<td>21–28 Sep</td>
+<td><strong>Wave A</strong>: 10 domains, NameSilo, Cloudflare DNS. Let's Encrypt wildcard certificates issued within the hour of each registration</td>
+</tr>
+<tr>
+<td>13 Oct</td>
+<td><code>oramosi[.]top</code> (landing) registered, Openprovider</td>
+</tr>
+<tr>
+<td>18 Oct</td>
+<td><strong>Wave B</strong>: 9 <code>.com</code> + <code>pibifaka[.]top</code> (landing), Registrar.eu / Openprovider, registrar default DNS</td>
+</tr>
+<tr>
+<td>21–24 Oct</td>
+<td><strong>Wave C</strong>: 17 domains, Key-Systems, Cloudflare DNS</td>
+</tr>
+<tr>
+<td>24 Oct 06:12</td>
+<td>Tracker <code>trckthepage[.]com</code> registered, Key-Systems</td>
+</tr>
+<tr>
+<td>28 Oct 09:00–10:00</td>
+<td>32 records reported to ThreatFox by one reporter (<code>/L12qt0W</code>, tracker and landing URLs)</td>
+</tr>
+<tr>
+<td>29 Oct 06:00–07:00</td>
+<td>19 more records, including all 10 <code>/opt/out</code> URLs (wave A)</td>
+</tr>
+<tr>
+<td>by 1 Nov</td>
+<td>Both <code>.top</code> landing domains on <code>serverHold</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2>Infrastructure</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Wave</th>
+<th>Registered</th>
+<th>Registrar</th>
+<th>DNS</th>
+<th>Domains</th>
+<th>Seen paths</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>21–28 Sep</td>
+<td>NameSilo</td>
+<td>Cloudflare</td>
+<td>10</td>
+<td><code>/L12qt0W</code>, <code>/opt/out</code></td>
+</tr>
+<tr>
+<td>B</td>
+<td>13–18 Oct</td>
+<td>Registrar.eu / Openprovider</td>
+<td>registrar default</td>
+<td>9 + 2 <code>.top</code> landers</td>
+<td><code>/L12qt0W</code>, <code>/pa/UK/</code></td>
+</tr>
+<tr>
+<td>C</td>
+<td>21–24 Oct</td>
+<td>Key-Systems</td>
+<td>Cloudflare</td>
+<td>17 + tracker</td>
+<td><code>/L12qt0W</code>, <code>/Fnc12IU</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Name generator.</strong> All 38 generated domains (tracker excluded) alternate vowel and
+consonant, are 7 or 8 letters long, and 37 of them start with a vowel. A pattern this
+narrow surviving three registrar changes is the strongest link between the waves.</p>
+<p><strong>Certificates.</strong> Wave A shows automated provisioning: 9 of its 10 domains got a
+Let's Encrypt wildcard certificate (<code>*.domain</code>) within an hour of registration. Wave B
+has 3 such certificates; 7 domains returned none and 1 lookup failed. In wave C, crt.sh
+returned no certificate for 14 domains and failed for 3; the one hit is <code>iconado[.]com</code>'s
+older GoDaddy certificate. Missing certificates are a collection gap, not evidence of
+plain HTTP: the reported URLs use HTTPS.</p>
+<h2>Hypotheses and confidence</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Hypothesis</th>
+<th>Confidence</th>
+<th>For</th>
+<th>Against / gaps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H1</td>
+<td>Delivered by SMS to UK mobiles</td>
+<td><strong class="conf high">High</strong></td>
+<td><code>%sms_cost%</code> macro; UK mobile numbers in <code>var9</code>; <code>/pa/UK/</code> landing path</td>
+<td>Lure text not collected</td>
+</tr>
+<tr>
+<td>H2</td>
+<td>One operator across waves A–C</td>
+<td><strong class="conf moderate">Moderate</strong></td>
+<td>Same name generator, <code>click_id</code> convention and tracker; reported together</td>
+<td>Three registrars; all records from one reporter (see caveats)</td>
+</tr>
+<tr>
+<td>H3</td>
+<td>Operator held victim data before sending</td>
+<td><strong class="conf moderate">Moderate</strong></td>
+<td>Name, address, email and phone pre-filled in a tracker URL</td>
+<td>One complete example</td>
+</tr>
+<tr>
+<td>H4</td>
+<td>Wave A <code>/opt/out</code> pages validate live numbers</td>
+<td><strong class="conf low">Low</strong></td>
+<td>Fits wave A's role and common smishing practice</td>
+<td>No page content</td>
+</tr>
+<tr>
+<td>H5</td>
+<td>Linked to Smishing Triad or another named group</td>
+<td><strong>Not assessed</strong></td>
+<td>—</td>
+<td>No overlap found in public reporting</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Caveats</h2>
+<ul>
+<li><strong>Single reporter.</strong> All 51 ThreatFox records (46 on cluster domains, 5 tracker and
+  landing URLs) come from one reporter in two batches,
+  so part of the cluster's coherence may reflect how one person submitted them.
+  Registration and naming evidence was checked independently to counter this, and it
+  holds.</li>
+<li><strong>Feed label is wrong.</strong> "Unknown malware / payload_delivery" describes no malware.
+  This is phishing. A pipeline trusting the label would misfile it.</li>
+<li><strong>Nothing was visited.</strong> Lure text, landing-page brand and payment flow are unknown.
+  Collecting them safely would mean a sandboxed browser from a UK mobile IP.</li>
+<li><strong>Victim data.</strong> One record holds a UK resident's personal data. It is redacted
+  everywhere in this repository and in the published explorer. The original record
+  stays visible on ThreatFox.</li>
+</ul>
+<h2>What would change this assessment</h2>
+<ul>
+<li>The lure text or landing brand (for example a parcel, toll or tax refund theme) would
+  allow comparison with known kits and could support attribution.</li>
+<li>Domains with the same name pattern registered at other registrars, or with other
+  <code>click_id</code> values, would test H2 and size the operation.</li>
+<li>Wave C certificates appearing in CT with the same issuer pattern as wave A would
+  strengthen the single-operator link.</li>
+</ul>
+<h2>Indicators</h2>
+<p>Defanged. Victim data removed.</p>
+<p><strong>Tracker:</strong> <code>trckthepage[.]com</code> (<code>now.</code> subdomain)
+<strong>Landing:</strong> <code>oramosi[.]top</code>, <code>pibifaka[.]top</code></p>
+<p><strong>Short-link domains (wave A):</strong> icubome, ihelaha, ikoduga, isanado, isanobe, itibile,
+ivogamo, owafozo, ozivoto, ufuyaje — all <code>[.]com</code>
+<strong>Wave B:</strong> eguyuwe, idiyoso, ijamecu, ojaleje, ojumapu, ufuhefu, ujexixa, utolapu,
+uvupofi — all <code>[.]com</code>
+<strong>Wave C:</strong> egulene, ekiceda, esirola, esuxofe, ewoyovo, ewufape, eyivowa, iconado,
+ihufito, ofovema, ogijoho, orulere, osekawe, ubuwibu, uvozami, uxodivi, uyonapa — all
+<code>[.]com</code></p>
+<p><strong>URL patterns</strong></p>
+<ul>
+<li><code>^https://[a-z]{7,8}\.(com|top)/(L12qt0W|Fnc12IU|opt/out)$</code></li>
+<li>tracker query containing <code>click_id=</code> and <code>cost=%sms_cost%</code></li>
+<li>landing path <code>/pa/UK/&lt;digits&gt;/?srv=eu&amp;domain=</code></li>
+</ul>
+<h2>Detection ideas</h2>
+<ul>
+<li><strong>Mail and SMS gateways:</strong> flag newly registered 7–8 letter domains that alternate
+  vowel and consonant, in messages to UK numbers. Expect false positives on real words;
+  combine with domain age under 45 days.</li>
+<li><strong>Proxy and DNS logs:</strong> block or alert on the tracker domain, and on any URL holding
+  an unfilled <code>%…_cost%</code> macro.</li>
+<li><strong>Brand protection:</strong> the <code>/pa/&lt;country&gt;/</code> landing convention with <code>srv=</code> and
+  <code>lptoken=</code> may recur for other countries; watch for <code>/pa/IE/</code>, <code>/pa/US/</code>.</li>
+</ul>
+<h2>Lessons fed back into campaign-graph</h2>
+<ul>
+<li>Feed URLs can hold victim personal data in query strings. The explorer now shows
+  indicator URLs without query strings, and raw investigation data stays out of git.</li>
+<li>Domain-name shape (this vowel–consonant generator) linked infrastructure the URL
+  pivots alone did not. A <code>nameshape:</code> weak pivot is on the roadmap.</li>
+</ul>
+<h2>Sources</h2>
+<p>ThreatFox API (<code>search_ioc</code>); RDAP via rdap.org; crt.sh and SSLMate Cert Spotter
+certificate transparency; public reporting:
+<a href="https://hunt.io/blog/massive-smishing-campaign-governments-postal-telecoms">Hunt.io</a>, <a href="https://www.resecurity.com/blog/article/smishing-triad-is-now-targeting-toll-payment-services-in-a-massive-fraud-campaign-expansion">Resecurity</a>, <a href="https://www.infosecurity-magazine.com/news/smishing-triad-toll-payment-scams/">Infosecurity Magazine</a>.</p></article>
+</body>
+</html>
