@@ -16,7 +16,10 @@ from .features import Node
 
 # Broad pivots count for less even when they are rare in this dataset.
 KIND_WEIGHT = {"ip": 1.0, "regdom": 1.0, "path": 1.0, "net24": 0.6, "kitpath": 0.4,
-               "port": 0.4, "asn": 0.25}
+               "port": 0.4, "asn": 0.25,
+               # VirusTotal: a file seen talking to both hosts is near-proof; a
+               # shared passive-DNS IP (CDNs already removed) is strong but older
+               "vtfile": 1.0, "vtip": 0.8}
 
 
 def feature_index(nodes: dict[str, Node]) -> dict[str, list[str]]:
@@ -49,7 +52,7 @@ def build_graph(nodes: dict[str, Node], max_df: int | None = None,
     return G
 
 
-STRONG = {"ip", "regdom", "path"}
+STRONG = {"ip", "regdom", "path", "vtip", "vtfile"}
 
 
 def corroborated(shared: list[str]) -> bool:

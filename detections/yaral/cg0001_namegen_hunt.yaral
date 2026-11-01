@@ -1,0 +1,38 @@
+rule cg0001_namegen_short_link_hunt {
+
+  meta:
+    author = "campaign-graph"
+    description = "Hunting rule. DNS lookups for a .com or .top name built like the CG-0001 generator (7-8 letters, strictly alternating vowel and consonant, e.g. ihelaha, egulene, pibifaka) followed by an HTTP request with a single 7-character token path, the click_id shape seen in the chain. Catches new short-link domains from the same operator before they reach any blocklist."
+    reference = "investigations/CG-0001/README.md"
+    severity = "LOW"
+    priority = "LOW"
+    false_positives = "The name shape alone matches 0.25% of the Tranco top 1M (2,501 names, e.g. alibaba.com, bilibili.com, politico.com); those are excluded by the cg0001_namegen_allowlist reference list, and the rule also requires a 7-character token path. It matched all 38 CG-0001 generated domains. See detections/README.md."
+    reference_lists = "cg0001_namegen_allowlist (detections/reference_lists/cg0001_namegen_allowlist.txt)"
+    created = "2026-11-01"
+
+  events:
+    $dns.metadata.event_type = "NETWORK_DNS"
+    re.regex($dns.network.dns.questions.name,
+      `^(?:[aeiou](?:[bcdfghjklmnpqrstvwxyz][aeiou]){3}|(?:[bcdfghjklmnpqrstvwxyz][aeiou]){4})\.(?:com|top)$`)
+    // 2,501 legitimate Tranco top-1M names share this shape (alibaba.com, politico.com, ...)
+    not $dns.network.dns.questions.name in %cg0001_namegen_allowlist
+    $domain = $dns.network.dns.questions.name
+    $device = $dns.principal.hostname
+
+    $http.metadata.event_type = "NETWORK_HTTP"
+    $http.target.hostname = $domain
+    $http.principal.hostname = $device
+    re.regex($http.target.url, `^https?://[^/]+/[A-Za-z0-9]{7}/?$`)
+
+    $dns.metadata.event_timestamp.seconds <= $http.metadata.event_timestamp.seconds
+
+  match:
+    $device, $domain over 15m
+
+  outcome:
+    $risk_score = max(35)
+    $urls = array_distinct($http.target.url)
+
+  condition:
+    $dns and $http
+}

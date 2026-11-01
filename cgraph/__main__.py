@@ -1,4 +1,4 @@
-"""campaign-graph: python -m cgraph fetch | truth | run | ui"""
+"""campaign-graph: python -m cgraph fetch | truth | vt | run | ui"""
 from __future__ import annotations
 
 import argparse
@@ -51,7 +51,11 @@ def analyse(a):
     """Load observations, build the graph and cluster it: shared by run and ui."""
     with open(OBS_PATH) as f:
         obs = [sources.Observation(**o) for o in json.load(f)]
-    nodes = build_nodes(obs, None if a.no_asn else load_asn_db())
+    asn_db = None if a.no_asn else load_asn_db()
+    nodes = build_nodes(obs, asn_db)
+    if a.vt:
+        from .vt import add_vt_features, load_cache
+        print(f"VirusTotal pivots added to {add_vt_features(nodes, load_cache(), asn_db)} hosts")
     G = build_graph(nodes, max_df=a.max_df, min_weight=a.min_weight)
     return obs, nodes, G, cluster(G, a.method, a.resolution)
 
@@ -125,6 +129,22 @@ def cmd_truth(a) -> None:
     print(f"wrote {len(truth)} hosts -> {a.out}")
 
 
+def cmd_vt(a) -> None:
+    from .vt import VTQuotaExceeded, enrich, priority_hosts
+    key = os.environ.get("VT_API_KEY")
+    if not key:
+        sys.exit("set VT_API_KEY (free key: virustotal.com > your profile > API key)")
+    with open(OBS_PATH) as f:
+        obs = [sources.Observation(**o) for o in json.load(f)]
+    nodes = build_nodes(obs)
+    truth = load_truth(a.truth) if a.truth else {}
+    try:
+        fetched, total = enrich(priority_hosts(nodes, truth), key, a.limit, a.per_minute)
+    except VTQuotaExceeded as e:
+        sys.exit(str(e))
+    print(f"fetched {fetched} hosts from VirusTotal; {total} cached in data/vt_cache.json")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(prog="cgraph")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -139,6 +159,7 @@ def main() -> None:
     common.add_argument("--min-weight", type=float, default=1.0)
     common.add_argument("--truth", help="CSV with indicator,label columns (actor-level truth)")
     common.add_argument("--no-asn", action="store_true", help="skip the ip2asn download")
+    common.add_argument("--vt", action="store_true", help="add VirusTotal pivots from data/vt_cache.json")
     r = sub.add_parser("run", parents=[common], help="cluster, score, export STIX")
     r.set_defaults(fn=cmd_run)
     u = sub.add_parser("ui", parents=[common], help="write a self-contained HTML explorer")
@@ -146,6 +167,11 @@ def main() -> None:
     u.add_argument("--link", action="append", default=[], metavar="LABEL=URL",
                    help="header link, e.g. --link 'CG-0001 report=reports/cg0001.html'")
     u.set_defaults(fn=cmd_ui)
+    v = sub.add_parser("vt", help="cache VirusTotal passive DNS + communicating files")
+    v.add_argument("--truth", help="truth CSV: these hosts are fetched first")
+    v.add_argument("--limit", type=int, default=100, help="hosts this run (2 requests each)")
+    v.add_argument("--per-minute", type=int, default=4, help="free API: 4")
+    v.set_defaults(fn=cmd_vt)
     t = sub.add_parser("truth", help="build actor-level truth CSV from ThreatFox actor tags")
     t.add_argument("--out", default="truth.tags.csv")
     t.set_defaults(fn=cmd_truth)

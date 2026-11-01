@@ -1,0 +1,41 @@
+rule cg0001_uk_smishing_chain {
+
+  meta:
+    author = "campaign-graph"
+    description = "Web or DNS traffic to the CG-0001 UK SMS-phishing chain: a generated short-link domain, the click tracker, or a /pa/<country>/ landing page. A device on this list most likely tapped a link in a scam text."
+    reference = "investigations/CG-0001/README.md"
+    severity = "MEDIUM"
+    priority = "MEDIUM"
+    confidence = "high for list hits, moderate for URL-pattern-only hits"
+    created = "2026-11-01"
+    reference_list = "cg0001_domains (detections/reference_lists/cg0001_domains.txt)"
+
+  events:
+    (
+      $e.metadata.event_type = "NETWORK_HTTP" or
+      $e.metadata.event_type = "NETWORK_DNS"
+    )
+    (
+      // 1. a known domain from the investigation
+      $e.target.hostname in %cg0001_domains or
+      $e.network.dns.questions.name in %cg0001_domains or
+      // 2. the tracker's unfilled SMS cost macro, wherever it is hosted next
+      re.regex($e.target.url, `cost=%sms_cost%`) or
+      // 3. the landing-page convention, for new landing domains
+      re.regex($e.target.url, `/pa/[A-Z]{2}/[0-9]+/\?srv=[a-z]+&domain=`)
+    )
+    $device = $e.principal.hostname
+
+  match:
+    $device over 1h
+
+  outcome:
+    $risk_score = max(65)
+    $hosts = array_distinct($e.target.hostname)
+    $dns_names = array_distinct($e.network.dns.questions.name)
+    $urls = array_distinct($e.target.url)
+    $users = array_distinct($e.principal.user.userid)
+
+  condition:
+    $e
+}

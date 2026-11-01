@@ -180,6 +180,31 @@ injected script content, which the feeds do not carry. ClearFake clusters well
 **Leads** for manual work: Vidar infrastructure spread across Indonesian
 gambling-spam domains (`*toto`, `*togel`, 8 subdomains each).
 
+## Google SecOps detections
+
+The CG-0001 findings ship as two **YARA-L 2.0** rules for Google SecOps
+(Chronicle), plus the reference list they use. A high-confidence chain rule
+(known domains, the `%sms_cost%` tracker macro, the `/pa/<CC>/` landing
+convention) and a low-severity hunting rule for the operator's domain-name
+generator. Their regexes are unit-tested straight from the rule files, and the
+hunting pattern's false-positive rate is measured against the Tranco top 1M.
+See [detections/](detections/README.md).
+
+## VirusTotal enrichment
+
+```bash
+export VT_API_KEY=...                                  # free VirusTotal / Google Threat Intelligence key
+python3 -m cgraph vt --truth truth.tags.csv --limit 100   # resumable, cached, 4 req/min
+python3 -m cgraph run --truth truth.tags.csv --vt         # score with VirusTotal pivots
+```
+
+Adds two pivots the feeds lack: `vtip:` (an IP the domain resolved to, from
+VirusTotal passive DNS) and `vtfile:` (a file VirusTotal saw talking to the
+host). Both count as strong evidence. CDN and front-door networks (Cloudflare,
+Akamai, Fastly, Google, AWS, Azure) are dropped from `vtip:`, because thousands
+of unrelated sites share their edge IPs. Read-only: nothing is ever submitted to
+VirusTotal, so nothing reaches the suspected infrastructure.
+
 ## Investigations
 
 - [**CG-0001: UK SMS-phishing redirect chain on generated domains**](investigations/CG-0001/README.md):
@@ -212,4 +237,5 @@ IDs are UUIDv5 over stable inputs, so reruns produce the same IDs.
 - [ ] Time pivot: first seen within N days, as a weak feature
 - [ ] `platform:` weak pivot (Vercel, dynv6) that needs corroboration
 - [ ] Resolution sweep: precision/recall curve, not one point
+- [ ] Run VirusTotal enrichment on the actor-labelled hosts and report the score change
 - [ ] More passive pivots: TLS certificate hash, JARM/JA4S, favicon hash
