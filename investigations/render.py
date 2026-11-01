@@ -75,12 +75,14 @@ def main() -> None:
     src = Path(sys.argv[1])
     fragment = "--fragment" in sys.argv
     title, body = render(src.read_text())
-    page_title = title.split(":")[0].strip() + " Investigation"
+    # --untagged: a plain docs page, not an investigation (no TLP marking, own title)
+    untagged = "--untagged" in sys.argv
+    page_title = f"campaign-graph {title}" if untagged else title.split(":")[0].strip() + " Investigation"
     head = f"<title>{page_title}</title>\n<style>{CSS}</style>\n"
     home = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--home=")), None)
     nav = f'<a class="home" href="{home}">&larr; campaign-graph explorer</a>' if home else "<span></span>"
-    article = (f'<article><div class="topline">{nav}<span class="tlp">TLP:CLEAR · defanged · victim data removed</span></div>\n'
-               f"{body}</article>\n")
+    tlp = "" if untagged else '<span class="tlp">TLP:CLEAR · defanged · victim data removed</span>'
+    article = f'<article><div class="topline">{nav}{tlp}</div>\n{body}</article>\n'
     if fragment:
         out = head + article
     else:

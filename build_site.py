@@ -16,6 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 SITE = ROOT / "site"
 ARTIFACT = "https://claude.ai/artifact/DSYSNZVtP5zUZxhGwrS4zo"
+# the query API's own example URLs are the only query strings allowed on the site
+API_HOST = "barnabas-team.us.ainiro.io/magic/modules/campaign-graph/"
 
 
 def run(*cmd: str) -> None:
@@ -25,7 +27,10 @@ def run(*cmd: str) -> None:
 def main() -> None:
     (SITE / "reports").mkdir(parents=True, exist_ok=True)
     run(sys.executable, "-m", "cgraph", "ui", "--truth", "truth.tags.csv",
-        "--out", "site/index.html", "--link", "CG-0001 report=reports/cg0001.html")
+        "--out", "site/index.html", "--link", "CG-0001 report=reports/cg0001.html",
+        "--link", "API=api.html")
+    run(sys.executable, "investigations/render.py", "docs/API.md", "site/api.html",
+        "--home=index.html", "--untagged")
 
     # The report README links the claude.ai copies; on this site they point home.
     md = (ROOT / "investigations/CG-0001/README.md").read_text()
@@ -42,7 +47,8 @@ def main() -> None:
     for f in SITE.rglob("*.html"):
         s = f.read_text()
         # defanged examples in the report ("trckthepage[.]com/…?click_id=") are fine
-        live = [u for u in re.findall(r"https?://([^\"'\s<]*)\?", s) if "[.]" not in u and "&lt;" not in u]
+        live = [u for u in re.findall(r"https?://([^\"'\s<]*)\?", s)
+                if "[.]" not in u and "&lt;" not in u and not u.startswith(API_HOST)]
         if live:
             bad.append(f"{f}: URL with a query string: {live[0][:60]}")
         # a real tracker value is long; the report's truncated "var9=44…" is not

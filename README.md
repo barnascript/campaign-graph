@@ -180,6 +180,23 @@ injected script content, which the feeds do not carry. ClearFake clusters well
 **Leads** for manual work: Vidar infrastructure spread across Indonesian
 gambling-spam domains (`*toto`, `*togel`, 8 subdomains each).
 
+## Query API (Magic)
+
+The clusters are also a public, read-only HTTP API built on
+[Magic](https://github.com/polterguy/magic), the open-source low-code backend:
+two parameterised SQL endpoints over a SQLite copy of the explorer's data.
+
+```bash
+curl "https://barnabas-team.us.ainiro.io/magic/modules/campaign-graph/lookup?host=egulene.com"
+curl "https://barnabas-team.us.ainiro.io/magic/modules/campaign-graph/cluster?id=CG-0226"
+```
+
+`lookup` returns a server's cluster, labels, ASN, the evidence that formed its
+cluster, and links to the explorer and report. `cluster` lists every member.
+Only domains and IPs are stored (no URLs, so no victim data), nothing is
+writable, and inputs are bound as parameters. Full reference:
+[docs/API.md](docs/API.md), also served at `/api.html` on the site.
+
 ## Google SecOps detections
 
 The CG-0001 findings ship as two **YARA-L 2.0** rules for Google SecOps

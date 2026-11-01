@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>campaign-graph Query API</title>
+<style>
+/* Report: a long-form threat brief in the campaign-graph dark look. */
+@font-face { font-family: "Geist"; src: url("/fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("/fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+:root {
+  color-scheme: dark;
+  --bg: #02090c; --paper: rgba(5, 16, 21, 0.78); --text: #f3f5f4; --text-2: rgba(243, 245, 244, 0.72); --muted: rgba(243, 245, 244, 0.48);
+  --rule: rgba(243, 245, 244, 0.12); --code-bg: rgba(243, 245, 244, 0.07); --accent: #55d8d4;
+  --high: #4bfaa9; --mod: #f2b84b; --low: #f26c53;
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; color: var(--text); font: 16px/1.65 var(--sans); background:
+  radial-gradient(1100px 520px at 85% -10%, rgba(85, 216, 212, 0.14), transparent 70%),
+  radial-gradient(900px 480px at 0% 0%, rgba(46, 102, 158, 0.18), transparent 70%), var(--bg); background-repeat: no-repeat; }
+article { max-width: 900px; margin: 0 auto; padding-block: 36px 80px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.topline { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 34px; }
+.home, .tlp { font: 400 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--text-2); }
+.home { color: var(--accent); text-decoration: none; }
+.home:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tlp { border: 1px solid var(--rule); padding: 4px 10px; }
+h1 { font-weight: 400; font-size: clamp(38px, 6.4vw, 76px); line-height: 0.98; letter-spacing: -0.055em; margin: 0 0 28px; text-wrap: balance; }
+h2 { font: 400 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 52px 0 14px; padding-top: 16px; border-top: 1px solid var(--rule); }
+p, li { max-width: 72ch; color: var(--text-2); }
+p strong, li strong, td strong { color: var(--text); font-weight: 500; }
+li { margin: 6px 0; }
+ol > li::marker { font-family: var(--mono); color: var(--accent); }
+a { color: var(--accent); text-decoration-color: rgba(85, 216, 212, 0.45); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--accent); }
+em { color: var(--text-2); }
+code { font: 0.84em var(--mono); background: var(--code-bg); color: var(--text); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+pre { background: var(--paper); border: 1px solid var(--rule); padding: 16px 18px; border-radius: 12px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: 0.8rem; color: var(--text-2); overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 14px 0 20px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; vertical-align: top; padding: 9px 14px; border-bottom: 1px solid var(--rule); color: var(--text-2); }
+tr:last-child td { border-bottom: 0; }
+th { font: 400 10.5px/1.4 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+td:first-child { white-space: nowrap; color: var(--text); }
+.conf { font-weight: 500; font-style: normal; }
+.conf.high { color: var(--high); } .conf.moderate { color: var(--mod); } .conf.low { color: var(--low); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<article><div class="topline"><a class="home" href="index.html">&larr; campaign-graph explorer</a></div>
+<h1>Query API</h1>
+<p>campaign-graph's clusters are also a public, read-only HTTP API, so another tool
+can ask "which campaign does this server belong to, and why?" without opening
+the explorer. It runs on <a href="https://github.com/polterguy/magic">Magic</a>, the
+open-source low-code backend, as two parameterised SQL endpoints over a SQLite
+copy of the same data the explorer shows.</p>
+<p><strong>Base URL:</strong> <code>https://barnabas-team.us.ainiro.io/magic/modules/campaign-graph</code></p>
+<h2>Look up a server</h2>
+<p><code>GET /lookup?host=&lt;domain or IP&gt;</code></p>
+<pre><code>curl &quot;https://barnabas-team.us.ainiro.io/magic/modules/campaign-graph/lookup?host=egulene.com&quot;
+</code></pre>
+<pre><code class="language-json">[{
+  &quot;host&quot;: &quot;egulene.com&quot;, &quot;kind&quot;: &quot;domain&quot;,
+  &quot;family&quot;: null, &quot;actor&quot;: null, &quot;asn&quot;: null, &quot;asn_name&quot;: null,
+  &quot;cluster&quot;: &quot;CG-0001&quot;, &quot;cluster_size&quot;: 36, &quot;density&quot;: 0.959,
+  &quot;cluster_labels&quot;: &quot;unlabelled 36&quot;,
+  &quot;evidence&quot;: &quot;path:/L12qt0W x595, path:/opt/out x45&quot;,
+  &quot;explorer_url&quot;: &quot;https://campaign-graph.onrender.com/#CG-0001&quot;,
+  &quot;report_url&quot;: &quot;https://campaign-graph.onrender.com/reports/cg0001.html&quot;
+}]
+</code></pre>
+<ul>
+<li><code>cluster</code> is <code>null</code> when the server is in the data but was not grouped with
+  any other server.</li>
+<li>An <strong>empty response</strong> means the server is not in the data at all.</li>
+<li>Matching ignores case and surrounding spaces.</li>
+</ul>
+<h2>List a cluster</h2>
+<p><code>GET /cluster?id=&lt;cluster id&gt;</code></p>
+<pre><code>curl &quot;https://barnabas-team.us.ainiro.io/magic/modules/campaign-graph/cluster?id=CG-0226&quot;
+</code></pre>
+<p>Returns one row per member server (up to 500), each carrying the cluster's size,
+density, labels and the evidence that formed it. <code>CG-0226</code> is the cluster that
+joins Famous Chollima and Lazarus infrastructure.</p>
+<h2>Fields</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>host</code></td>
+<td>Domain or IP, as reported by the feeds</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td><code>domain</code> or <code>ip</code></td>
+</tr>
+<tr>
+<td><code>family</code></td>
+<td>Malware family claimed by the source feeds (not used for clustering)</td>
+</tr>
+<tr>
+<td><code>actor</code></td>
+<td>Threat actor from ThreatFox reporter tags, where one exists</td>
+</tr>
+<tr>
+<td><code>asn</code>, <code>asn_name</code></td>
+<td>Hosting network, from an offline IP-to-ASN table</td>
+</tr>
+<tr>
+<td><code>cluster</code></td>
+<td>Cluster ID, the same as in the explorer and STIX export</td>
+</tr>
+<tr>
+<td><code>cluster_labels</code></td>
+<td>Labels inside the cluster, with counts</td>
+</tr>
+<tr>
+<td><code>evidence</code></td>
+<td>The pivots shared most inside the cluster, with how many links use each</td>
+</tr>
+<tr>
+<td><code>explorer_url</code>, <code>report_url</code></td>
+<td>Where to see it; <code>report_url</code> exists only for investigated clusters</td>
+</tr>
+</tbody>
+</table></div>
+<h2>What it will not do</h2>
+<ul>
+<li><strong>Read-only.</strong> There are no write endpoints.</li>
+<li><strong>No URLs.</strong> Only domains and IPs are stored. Feed URLs can carry victims'
+  personal data in their query strings, so none are kept.</li>
+<li><strong>No live lookups.</strong> It answers from the stored snapshot (see the explorer's
+  "data as of" date) and never contacts the servers it describes.</li>
+<li><strong>Parameterised.</strong> Inputs are bound as query parameters, never pasted into SQL.</li>
+</ul></article>
+</body>
+</html>
